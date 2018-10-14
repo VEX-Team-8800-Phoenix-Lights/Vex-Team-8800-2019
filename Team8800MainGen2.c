@@ -145,8 +145,7 @@ bool presetLevelJustActive = false;
 bool armIsForward;
 bool liftIsDown = false;
 
-bool liftLeftAtPosition;
-bool liftRightAtPosition;
+bool liftAtPosition;
 bool driveAtPosition;
 bool turnAtPosition;
 
@@ -968,43 +967,30 @@ void moveLiftDown(int speed, int distance) {
 }
 
 void autoLiftPIDControl (int position) {
-	float leftCurrent;
-	float rightCurrent;
+	float liftCurrent;
 
-	float leftProportion;
-	float rightProportion;
+	float liftProportion;
 
-	float liftLeftError;
-	float liftRightError;
+	float liftError;
 
-	float leftPot = SensorValue[liftLeftPot];
-	float rightPot = SensorValue[liftRightPot];
+	float encLift = SensorValue[liftEnc];
 
 	//Find lift error
-	liftLeftError = position - leftPot;
-	liftRightError = position - rightPot;
+	liftError = position - encLift;
 
-	leftProportion = liftLeftError * autoLiftkp;
-	rightProportion = liftRightError * autoLiftkp;
+	liftProportion = liftError * autoLiftkp;
 
-	leftCurrent = leftProportion;
-	rightCurrent = rightProportion;
+	liftCurrent = liftProportion;
 
-	if (leftCurrent > 127) {
-		leftCurrent = 127;
+	if (liftCurrent > 127) {
+		liftCurrent = 127;
 	}
-	if (rightCurrent > 127) {
-		rightCurrent = 127;
-	}
-	if (leftCurrent < -127) {
-		leftCurrent = -127;
-	}
-	if (rightCurrent < -127) {
-		rightCurrent = -127;
+	if (liftCurrent < -127) {
+		liftCurrent = -127;
 	}
 
-	motor[liftL] = leftCurrent;
-	motor[liftR] = leftCurrent;
+	motor[liftL] = liftCurrent;
+	motor[liftR] = liftCurrent;
 
 	//writeDebugStreamLine("left pot %d", leftPot);
 	//writeDebugStreamLine("             right pot %d", rightPot);
@@ -1030,48 +1016,39 @@ void autoLiftPIDControl (int position) {
 }
 
 void liftPIDCalculate (int position) {
-	float leftCurrent;
-	float rightCurrent;
+	float liftCurrent;
 
 	float integralAcitveZone = 100;
 
-	float leftProportion;
+	float liftProportion;
 	float sharedIntegral;
-	float leftDerivative;
-	float rightProportion;
-	float rightDerivative;
+	float liftDerivative;
 
-	float liftLeftError;
-	float liftRightError;
+	float liftError;
 	float liftErrorT;
-	float leftLastPot;
-	float rightLastPot;
+	float liftLastEnc;
+	float encLastLift
 
-	float leftPot = SensorValue[liftLeftPot];
-	float rightPot = SensorValue[liftRightPot];
+	float encLift = SensorValue[liftEnc];
 
 	//Find lift error
-	liftLeftError = position - leftPot;
-	liftRightError = position - rightPot;
+	liftError = position - encLift;
 
-	leftProportion = liftLeftError * liftkp;
-	rightProportion = liftRightError * liftkp;
+	liftProportion = liftError * liftkp;
 
 	sharedIntegral = liftErrorT * liftki * 0.025;
 
-	leftDerivative = ((leftPot - leftLastPot) * liftkd)/0.025;
-	rightDerivative = ((rightPot - rightLastPot) * liftkd)/0.025;
+	liftDerivative = ((encLift - encLastLift) * liftkd)/0.025;
 
 	//Integral
-	liftErrorT += liftLeftError;
+	liftErrorT += liftError;
 	if (sharedIntegral > 80) {
 		sharedIntegral = 80;
 		} else if (sharedIntegral < -80) {
 		sharedIntegral = -80;
 	}
 
-	leftCurrent = leftProportion + sharedIntegral + leftDerivative;
-	rightCurrent = rightProportion + sharedIntegral + rightDerivative;
+	liftCurrent = liftProportion + sharedIntegral + liftDerivative;
 
 	/*if (abs(leftPot - leftLastPot) <= 1) {
 	liftLeftAtPosition = true;
@@ -1084,21 +1061,15 @@ void liftPIDCalculate (int position) {
 	liftRightAtPosition = false;
 	}*/
 
-	if (leftCurrent > 127) {
-		leftCurrent = 127;
+	if (liftCurrent > 127) {
+		liftCurrent = 127;
 	}
-	if (rightCurrent > 127) {
-		rightCurrent = 127;
-	}
-	if (leftCurrent < -127) {
-		leftCurrent = -127;
-	}
-	if (rightCurrent < -127) {
-		rightCurrent = -127;
+	if (liftCurrent < -127) {
+		liftCurrent = -127;
 	}
 
-	motor[liftL] = leftCurrent;
-	motor[liftR] = leftCurrent;
+	motor[liftL] = liftCurrent;
+	motor[liftR] = liftCurrent;
 
 	//writeDebugStreamLine("left pot %d", leftPot);
 	//writeDebugStreamLine("             right pot %d", rightPot);
@@ -1122,8 +1093,7 @@ void liftPIDCalculate (int position) {
 	//datalogAddValueWithTimeStamp(2, liftkd);
 	//datalogAddValueWithTimeStamp(3, leftCurrent);
 
-	leftLastPot = leftPot;
-	rightLastPot = rightPot;
+	encLastLift = encLift;
 
 	clearTimer(T4);
 }
@@ -1135,15 +1105,10 @@ void liftPIDControl (int position) {
 }
 
 void checkLiftPos (int height) {
-	if (SensorValue[liftLeftPot] >= height - 500) {
-		liftLeftAtPosition = true;
+	if (SensorValue[liftEnc] >= height - 500) {
+		liftAtPosition = true;
 		} else {
-		liftLeftAtPosition = false;
-	}
-	if (SensorValue[liftRightPot] >= height - 500) {
-		liftRightAtPosition = true;
-		} else {
-		liftRightAtPosition = false;
+		liftAtPosition = false;
 	}
 }
 
