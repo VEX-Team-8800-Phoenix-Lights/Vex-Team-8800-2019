@@ -97,7 +97,7 @@ task activateLib()
 
 	while (true) {
 		checkMotors();
-		waitInMilliseconds(5);
+		wait1Msec(5);
 	}
 }
 
@@ -550,14 +550,14 @@ void checkMotorPosition(byte i)
 		// Slight motor reverse acts as brake
 		if (motorCtrl[i].brake) {
 			turnMotor(motorCtrl[i].motorPort1, motorCtrl[i].motorPort2, (motorCtrl[i].powerPct < 0 ? 20 : -20));
-			waitInMilliseconds(40);
+			wait1Msec(40);
 		}
 
 		// Experiment with fixing overshot by keeping motor reverse running a little longer
 		if (abs(SensorValue[motorCtrl[i].encoderPort] - motorCtrl[i].encoderStopPos) > 40) {
 			//writeDebugStreamLine("Overshot adj, reqt pos: %d, cur pos: %d",
 			//	motorCtrl[i].encoderStopPos, SensorValue[motorCtrl[i].encoderPort]);
-			waitInMilliseconds(30);
+			wait1Msec(30);
 		}
 
 		// Stop Motor
@@ -672,7 +672,7 @@ task checkPsuedoTimer()
 				}
 			}
 		}
-		waitInMilliseconds(1);
+		wait1Msec(1);
 	}
 }
 
