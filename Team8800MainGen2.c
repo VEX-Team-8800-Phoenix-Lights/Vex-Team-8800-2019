@@ -81,12 +81,14 @@ void selectTeamAlliance();
 void moveLiftDown(int speed, int distance);
 void moveArmOut();
 void moveArmMiddle();
+void moveArmFlag();
 void moveArmIn();
 void moveArm(bool forward);
 void moveLiftUp(int speed, int distance);
 void moveLiftUpAuto(int speed, int distance);
 void rollerIntake(int speed);
 void rollerOutake(int speed, int time);
+void collectFirstBall();
 
 void autoLiftPIDControl (int position);
 void liftPIDCalculate (int position);
@@ -106,6 +108,7 @@ void driveBackward(int speed, int distance);
 void turnLeft(int speed, int distance);
 void turnRight(int speed, int distance);
 void clearDriveEnc();
+void moveArmOutInAuto();
 
 // Constants and global vars
 const byte MIN_JOYSTICK_THRESHOLD = 30;
@@ -225,7 +228,7 @@ task autonomousRoutines()
 {
 	switch (autonomousMode) {
 	case AUTONOMOUS_MODE_2FLAG_PARK:
-		//////////////////////////////////////////////////////////////Mobile Goal 5////////////////////////
+		//////////////////////////////////////////////////////////////2 Flag Park////////////////////////
 
 		if (allianceColor == BLUE_ALLIANCE) {
 			theaterChaseTask(0, 0, 127, 50, 15000);
@@ -233,13 +236,15 @@ task autonomousRoutines()
 			theaterChaseTask(127, 0, 0, 50, 15000);
 		}
 
-		motor[roller] = 40;
+		clearTimer(T2);
+		clearDriveEnc();
+
+		moveArmOutInAuto();
 
 		clearTimer(T2);
 		clearDriveEnc();
 
-		clearTimer(T2);
-		clearDriveEnc();
+		collectFirstBall():
 
 		///////////////////////////////////////////////////////////////////////End Mobile Goal 5//////////////////////////
 		break;
@@ -412,9 +417,9 @@ task ProcessController() {
 		}
 
 		//Roller control
-		if (isButtonPressed(Btn6D)) {
+		if (isButtonPressed(Btn5D)) {
 			motor[roller] = 127;
-			} else if (isButtonPressed(Btn6U)) {
+			} else if (isButtonPressed(Btn5U)) {
 			motor[roller] = -127;
 			} else {
 			motor[roller] = 0;
@@ -458,7 +463,7 @@ task ProcessController() {
 		//writeDebugStreamLine("Prev stack level, %d", prevStackLevel);
 		//writeDebugStreamLine("mobile,                                                                           %d", SensorValue[mobilePot]);
 		//writeDebugStreamLine("               roller Enc, %d", SensorValue[rollerEnc]);
-		writeDebugStreamLine("arm pot,                                                    %d", SensorValue[armPot]);
+		//writeDebugStreamLine("arm pot,                                                    %d", SensorValue[armPot]);
 		//writeDebugStreamLine("arm power,                                                    %d", armPower );
 		//writeDebugStreamLine("left pot, %d", SensorValue[liftLeftPot]);
 		//writeDebugStreamLine("right pot,                    %d", SensorValue[liftRightPot]);
@@ -468,13 +473,13 @@ task ProcessController() {
 		//writeDebugStreamLine("right drive enc                    %d", SensorValue[rightDriveEnc]);
 		//	writeDebugStreamLine("left drive enc        %d", SensorValue[leftDriveEnc]);
 
-		//writeDebugStreamLine("Gyro Values,      %d", SensorValue(driveGyro));
+		writeDebugStreamLine("Gyro Values,      %d", SensorValue(driveGyro));
 		//writeDebugStreamLine("Lift right pot,      %d", SensorValue(liftRightPot));
 		//writeDebugStreamLine("						Lift Left pot,      %d", SensorValue(liftLeftPot));
 
 		//datalogAddValueWithTimeStamp(6, SensorValue[liftLeftPot]);
 		//datalogAddValueWithTimeStamp(5, SensorValue[liftRightPot]);
-		datalogAddValueWithTimeStamp(6, SensorValue[armPot]);
+	//	datalogAddValueWithTimeStamp(6, SensorValue[armPot]);
 
 		//datalogAddValueWithTimeStamp(0, SensorValue[liftLeftPot]);
 		//datalogAddValueWithTimeStamp(1, SensorValue[liftRightPot]);
@@ -691,14 +696,14 @@ void selectTeamAlliance()
 }
 
 void initializeGyro() {
-	writeDebugStreamLine("Gyro before initialize %d", SensorValue[in8]);
+	writeDebugStreamLine("Gyro before initialize %d", SensorValue[driveGyro]);
 
 	SensorType(driveGyro) = sensorNone;
 	wait1Msec(1000);
 	SensorType(driveGyro) = sensorGyro;
 	wait1Msec(2000);
 
-	writeDebugStreamLine("Gyro after initialize %d", SensorValue[in8]);
+	writeDebugStreamLine("Gyro after initialize %d", SensorValue[driveGyro]);
 }
 
 void moveArmIn () {
@@ -734,6 +739,20 @@ void moveArmMiddle() {
 		}else if (SensorValue[armPot] < 1900) {
 		motor[swingingArm] = 120;
 		} else if (SensorValue[armPot] < 2020) {
+		motor[swingingArm] = 40;
+		} else {
+		motor[swingingArm] = 5;
+	}
+}
+
+void moveArmFlag() {
+	if (SensorValue[armPot] > 1800) {
+			motor[swingingArm] = -60;
+		}else if (SensorValue[armPot] > 1700) {
+		motor[swingingArm] = -15;
+		}else if (SensorValue[armPot] < 1500) {
+		motor[swingingArm] = 120;
+		} else if (SensorValue[armPot] < 1550) {
 		motor[swingingArm] = 40;
 		} else {
 		motor[swingingArm] = 5;
@@ -1058,12 +1077,12 @@ void autoDrivePIDCalculate (int distance, bool time) {
 	//writeDebugStreamLine("Current Angle %d", encAverage);
 	//writeDebugStreamLine("            error %d", error);
 	//writeDebugStreamLine("            last error %d", lastError);
-	writeDebugStreamLine("        integral %d", integral);
+	//writeDebugStreamLine("        integral %d", integral);
 	//writeDebugStreamLine("             error total %d", errorT);
-	writeDebugStreamLine("                      derivative %d", derivative);
+	//writeDebugStreamLine("                      derivative %d", derivative);
 	//writeDebugStreamLine("           last error %d", lastError);
 	//writeDebugStreamLine("             drive current 2/ %d", current);
-	writeDebugStreamLine("proportion %d", proportion);
+	//writeDebugStreamLine("proportion %d", proportion);
 	//writeDebugStreamLine("             error %d", error);
 	//writeDebugStreamLine("             distance %d", distance);
 
@@ -1159,6 +1178,7 @@ void autoGyroPIDCalculate (int setAngle) {
 	writeDebugStreamLine("             derivative %d", derivative);
 	writeDebugStreamLine("           last error %d", lastTurnError);*/
 	//writeDebugStreamLine("             angle current 2/ %d", current);
+	writeDebugStreamLine("gyro %d", angle);
 
 	//datalogAddValueWithTimeStamp(4, turnError);
 	datalogAddValueWithTimeStamp(0, angle);
@@ -1233,5 +1253,25 @@ void autoDriveGyroPIDCalculate (int setAngle, int distance) {
 void autoDriveGyroPIDControl (int setAngle, int distance) {
 	if (time1[T1] > 25) {
 		autoDriveGyroPIDCalculate(setAngle, distance);
+	}
+}
+
+void moveArmOutInAuto() {
+	while (time1(T2) < 2000) {
+		moveArmFlag();
+	}
+}
+
+void collectFirstBall() {
+	while (time1(T2) < 6000) {
+		if (time1(T2) < 1050) {
+			autoGyroPIDControl(-70);
+		}
+
+		if (time1(T2) > 1050 && time1(T2) < 3550) {
+			autoDriveGyroPIDControl(-70, -1000);
+			motor[roller] = -120;
+		}
+
 	}
 }
