@@ -88,7 +88,6 @@ void moveLiftUp(int speed, int distance);
 void moveLiftUpAuto(int speed, int distance);
 void rollerIntake(int speed);
 void rollerOutake(int speed, int time);
-void collectFirstBall();
 
 void autoLiftPIDControl (int position);
 void liftPIDCalculate (int position);
@@ -109,6 +108,9 @@ void turnLeft(int speed, int distance);
 void turnRight(int speed, int distance);
 void clearDriveEnc();
 void moveArmOutInAuto();
+void allignWithFlags();
+void collectFirstBall();
+void scoreFlags();
 
 // Constants and global vars
 const byte MIN_JOYSTICK_THRESHOLD = 30;
@@ -121,13 +123,13 @@ const byte LEFT = 1;
 const byte RIGHT = 2;
 byte allianceSide = RIGHT;
 
-const byte AUTONOMOUS_MODE_2FLAG_PARK = 1;
+const byte AUTONOMOUS_MODE_3FLAG = 1;
 const byte AUTONOMOUS_MODE_1FLAG_PARK = 2;
-const byte AUTONOMOUS_MODE_MOBILE_GOAL_20 = 3;
-const byte AUTONOMOUS_MODE_STATIONARY = 4;
+const byte AUTONOMOUS_MODE_BACK_1FLAG = 3;
+const byte AUTONOMOUS_MODE_BACK_1FLAG_PARK = 4;
 const byte AUTONOMOUS_MODE_BLOCK = 5;
 const byte AUTONOMOUS_MODE_SKILLS = 6;
-byte autonomousMode = AUTONOMOUS_MODE_2FLAG_PARK;
+byte autonomousMode = AUTONOMOUS_MODE_3FLAG;
 
 unsigned long autonomousStartTime;
 
@@ -181,12 +183,12 @@ float liftki = 0.04;
 float liftkd = -0.05;
 
 //Drive PID values
-float drivekp = 0.25;
-float driveki = 0.0036;
-float drivekd = 0.06;
+float drivekp = 1.55;
+float driveki = 0.000016;
+float drivekd = 0.05;
 
 //Turn PID values
-float turnkp = 0.7;
+float turnkp = 0.85;
 float turnki = 0.000004;
 float turnkd = 0.04;
 
@@ -227,8 +229,8 @@ void pre_auton()
 task autonomousRoutines()
 {
 	switch (autonomousMode) {
-	case AUTONOMOUS_MODE_2FLAG_PARK:
-		//////////////////////////////////////////////////////////////2 Flag Park////////////////////////
+	case AUTONOMOUS_MODE_3FLAG:
+		//////////////////////////////////////////////////////////////3 Flag////////////////////////
 
 		if (allianceColor == BLUE_ALLIANCE) {
 			theaterChaseTask(0, 0, 127, 50, 15000);
@@ -244,9 +246,19 @@ task autonomousRoutines()
 		clearTimer(T2);
 		clearDriveEnc();
 
-		collectFirstBall():
+		collectFirstBall();
 
-		///////////////////////////////////////////////////////////////////////End Mobile Goal 5//////////////////////////
+		clearTimer(T2);
+		clearDriveEnc();
+
+		allignWithFlags();
+
+		clearTimer(T2);
+		clearDriveEnc();
+
+		scoreFlags();
+
+		///////////////////////////////////////////////////////////////////////End 3FLAG//////////////////////////
 		break;
 
 	case AUTONOMOUS_MODE_1FLAG_PARK:
@@ -258,18 +270,18 @@ task autonomousRoutines()
 			theaterChaseTask(127, 0, 0, 50, 15000);
 		}
 
-		motor[roller] = 40;
-
 		clearTimer(T2);
 		clearDriveEnc();
-
+while (time1[T2] < 14000) {
+		autoDrivePIDControl(500, false);
+	}
 		clearTimer(T2);
 		clearDriveEnc();
 
 		//////////////////////////////////////////////////////End of Mobile Goal 10/////////////////////////////////
 		break;
 
-	case AUTONOMOUS_MODE_MOBILE_GOAL_20:
+	case AUTONOMOUS_MODE_BACK_1FLAG:
 		////////////////////////////////////////////////////////////////////////////////Mobile Goal 20/////////////////////////////
 		clearDriveEnc();
 		clearTimer(T2);
@@ -287,7 +299,7 @@ task autonomousRoutines()
 		//////////////////////////////////////////////////////End of Mobile Goal 20/////////////////////////////////////////////////////
 		break;
 
-	case AUTONOMOUS_MODE_STATIONARY:
+	case AUTONOMOUS_MODE_BACK_1FLAG_PARK:
 		//////////////////////////////////////////////////////////Stationary/////////////////////////////////////
 		motor[roller] = 40;
 
@@ -417,9 +429,9 @@ task ProcessController() {
 		}
 
 		//Roller control
-		if (isButtonPressed(Btn5D)) {
+		if (isButtonPressed(Btn6D)) {
 			motor[roller] = 127;
-			} else if (isButtonPressed(Btn5U)) {
+			} else if (isButtonPressed(Btn6U)) {
 			motor[roller] = -127;
 			} else {
 			motor[roller] = 0;
@@ -441,6 +453,8 @@ task ProcessController() {
 			moveArmOut();
 			} else if (isButtonPressed(Btn8UXmtr2)) {
 			moveArmMiddle();
+			} else if (isButtonPressed(Btn8DXmtr2)) {
+			moveArmFlag();
 		}
 
 		//Move lift
@@ -554,7 +568,7 @@ void selectTeamAlliance()
 	// Defaults
 	allianceColor = BLUE_ALLIANCE;
 	allianceSide = RIGHT;
-	autonomousMode = AUTONOMOUS_MODE_MOBILE_GOAL_20;
+	autonomousMode = AUTONOMOUS_MODE_3FLAG;
 	//return;
 
 	//SensorValue[ledGreen] = 0;
@@ -625,7 +639,7 @@ void selectTeamAlliance()
 
 	bool autonomousTypeSelected = false;
 	int scrollCountType = 1;
-	byte scrolledAutoType = AUTONOMOUS_MODE_2FLAG_PARK;
+	byte scrolledAutoType = AUTONOMOUS_MODE_3FLAG;
 	while (!autonomousTypeSelected) {
 		// Wait for button press
 		if(nLCDButtons == 1) {
@@ -641,38 +655,38 @@ void selectTeamAlliance()
 
 		switch (scrollCountType) {
 		case 1:
-			scrolledAutoType = AUTONOMOUS_MODE_2FLAG_PARK;
-			displayLCDString(1, 0, "[1]2 20 ST B S ");
+			scrolledAutoType = AUTONOMOUS_MODE_3FLAG;
+			displayLCDString(1, 0, "[1]2 3 4 5 6 ");
 			wait1Msec(200);
 			break;
 
 		case 2:
 			scrolledAutoType = AUTONOMOUS_MODE_1FLAG_PARK;
-			displayLCDString(1, 0, " 1[2]20 ST B S ");
+			displayLCDString(1, 0, " 1[2]3 4 5 6 ");
 			wait1Msec(200);
 			break;
 
 		case 3:
-			scrolledAutoType = AUTONOMOUS_MODE_MOBILE_GOAL_20;
-			displayLCDString(1, 0, " 1 2[20]ST B S ");
+			scrolledAutoType = AUTONOMOUS_MODE_BACK_1FLAG;
+			displayLCDString(1, 0, " 1 2[3]4 5 6 ");
 			wait1Msec(200);
 			break;
 
 		case 4:
-			scrolledAutoType = AUTONOMOUS_MODE_STATIONARY;
-			displayLCDString(1, 0, " 1 2 20[ST]B S ");
+			scrolledAutoType = AUTONOMOUS_MODE_BACK_1FLAG_PARK;
+			displayLCDString(1, 0, " 1 2 3[4]5 6 ");
 			wait1Msec(200);
 			break;
 
 		case 5:
 			scrolledAutoType = AUTONOMOUS_MODE_BLOCK;
-			displayLCDString(1, 0, " 1 2 20 ST[B]S ");
+			displayLCDString(1, 0, " 1 2 3 4[5]6 ");
 			wait1Msec(200);
 			break;
 
 		case 6:
 			scrolledAutoType = AUTONOMOUS_MODE_SKILLS;
-			displayLCDString(1, 0, " 1 2 20 ST B[S]");
+			displayLCDString(1, 0, " 1 2 3 4 5[6]");
 			wait1Msec(200);
 			break;
 		}
@@ -1257,21 +1271,58 @@ void autoDriveGyroPIDControl (int setAngle, int distance) {
 }
 
 void moveArmOutInAuto() {
-	while (time1(T2) < 2000) {
+	while (time1(T2) < 1000) {
 		moveArmFlag();
 	}
 }
 
 void collectFirstBall() {
 	while (time1(T2) < 6000) {
+		moveArmFlag();
+
 		if (time1(T2) < 1050) {
-			autoGyroPIDControl(-70);
+			autoGyroPIDControl(-160);
 		}
 
 		if (time1(T2) > 1050 && time1(T2) < 3550) {
-			autoDriveGyroPIDControl(-70, -1000);
+			autoDriveGyroPIDControl(-80, -1200);
 			motor[roller] = -120;
 		}
+	}
+}
 
+void allignWithFlags() {
+	while (time1(T2) < 6000) {
+		moveArmFlag();
+
+		if (time1(T2) < 1550) {
+			autoGyroPIDControl(50);
+		}
+
+		if (time1(T2) > 1550 && time1(T2) < 3550) {
+			autoDriveGyroPIDControl(-30, 1300);
+		}
+
+		if (time1[T2] > 3550 && time1[T2] < 5999) {
+			autoGyroPIDControl(900);
+		}
+	}
+}
+
+void scoreFlags() {
+	while (time1(T2) < 6000) {
+		moveArmFlag();
+
+		if (time1(T2) < 1550) {
+			autoDriveGyroPIDControl(900, 100);
+		}
+
+		if (time1(T2) > 1550 && time1(T2) < 3550) {
+			motor[shooter] = -127;
+		}
+
+		if (time1(T2) > 3550 && time1(T2) < 5550) {
+			motor[shooter] = 0;
+		}
 	}
 }
