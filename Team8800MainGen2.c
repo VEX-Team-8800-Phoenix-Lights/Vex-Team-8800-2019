@@ -107,10 +107,10 @@ void driveBackward(int speed, int distance);
 void turnLeft(int speed, int distance);
 void turnRight(int speed, int distance);
 void clearDriveEnc();
-void moveArmOutInAuto();
 void allignWithFlags();
 void collectFirstBall();
-void scoreFlags();
+void scoreHighFlag();
+void scoreBottomTwoFlags();
 
 // Constants and global vars
 const byte MIN_JOYSTICK_THRESHOLD = 30;
@@ -183,13 +183,13 @@ float liftki = 0.04;
 float liftkd = -0.05;
 
 //Drive PID values
-float drivekp = 1.55;
+float drivekp = 0.85;
 float driveki = 0.000016;
-float drivekd = 0.05;
+float drivekd = 0.1;
 
 //Turn PID values
-float turnkp = 0.85;
-float turnki = 0.000004;
+float turnkp = 0.65;
+float turnki = 0.0027;
 float turnkd = 0.04;
 
 //Turn Drive PID values
@@ -241,11 +241,6 @@ task autonomousRoutines()
 		clearTimer(T2);
 		clearDriveEnc();
 
-		moveArmOutInAuto();
-
-		clearTimer(T2);
-		clearDriveEnc();
-
 		collectFirstBall();
 
 		clearTimer(T2);
@@ -255,8 +250,15 @@ task autonomousRoutines()
 
 		clearTimer(T2);
 		clearDriveEnc();
+		wait1Msec(100);
 
-		scoreFlags();
+		scoreHighFlag();
+
+		clearTimer(T2);
+		clearDriveEnc();
+		wait1Msec(100);
+
+		scoreBottomTwoFlags();
 
 		///////////////////////////////////////////////////////////////////////End 3FLAG//////////////////////////
 		break;
@@ -273,7 +275,7 @@ task autonomousRoutines()
 		clearTimer(T2);
 		clearDriveEnc();
 while (time1[T2] < 14000) {
-		autoDrivePIDControl(500, false);
+		autoGyroPIDControl(900);
 	}
 		clearTimer(T2);
 		clearDriveEnc();
@@ -429,7 +431,7 @@ task ProcessController() {
 		}
 
 		//Roller control
-		if (isButtonPressed(Btn6D)) {
+		if (isButtonPressed(Btn5U)) {
 			motor[roller] = 127;
 			} else if (isButtonPressed(Btn6U)) {
 			motor[roller] = -127;
@@ -487,7 +489,7 @@ task ProcessController() {
 		//writeDebugStreamLine("right drive enc                    %d", SensorValue[rightDriveEnc]);
 		//	writeDebugStreamLine("left drive enc        %d", SensorValue[leftDriveEnc]);
 
-		writeDebugStreamLine("Gyro Values,      %d", SensorValue(driveGyro));
+		//writeDebugStreamLine("Gyro Values,      %d", SensorValue(driveGyro));
 		//writeDebugStreamLine("Lift right pot,      %d", SensorValue(liftRightPot));
 		//writeDebugStreamLine("						Lift Left pot,      %d", SensorValue(liftLeftPot));
 
@@ -498,19 +500,19 @@ task ProcessController() {
 		//datalogAddValueWithTimeStamp(0, SensorValue[liftLeftPot]);
 		//datalogAddValueWithTimeStamp(1, SensorValue[liftRightPot]);
 
-		if (isButtonClick(Btn7U)) {
+		if (isButtonClick(Btn7U) || isButtonClick(Btn7UXmtr2)) {
 			theaterChaseTask(127, 0, 127, 127, 15000);
 		}
 
-		if (isButtonClick(Btn7R)) {
+		if (isButtonClick(Btn7R) || isButtonClick(Btn7RXmtr2)) {
 			theaterChaseTask(0, 0, 127, 127, 15000);
 		}
 
-		if (isButtonClick(Btn7L)) {
+		if (isButtonClick(Btn7L) || isButtonClick(Btn7LXmtr2)) {
 			theaterChaseTask(127, 0, 0, 127, 15000);
 		}
 
-		if (isButtonClick(Btn7D)) {
+		if (isButtonClick(Btn7D) || isButtonClick(Btn7DXmtr2)) {
 			rainbowCycleTask(0, 15000);
 		}
 
@@ -732,13 +734,13 @@ void moveArmIn () {
 }
 
 void moveArmOut() {
-	if (SensorValue[armPot] > 220) {
+	if (SensorValue[armPot] > 260) {
 			motor[swingingArm] = -120;
-		} else if (SensorValue[armPot] > 195) {
+		} else if (SensorValue[armPot] > 235) {
 		motor[swingingArm] = -20;
-		} else if (SensorValue[armPot] < 170) {
+		} else if (SensorValue[armPot] < 210) {
 		motor[swingingArm] = 30;
-		} else if (SensorValue[armPot] < 145) {
+		} else if (SensorValue[armPot] < 185) {
 		motor[swingingArm] = 70;
 		}	else {
 		motor[swingingArm] = 0;
@@ -1116,7 +1118,7 @@ void autoDrivePIDCalculate (int distance, bool time) {
 	}
 }
 
-void autoDrivePIDControl (int distance, bool time) {
+void autoDrivePIDControl(int distance, bool time) {
 	if (time) {
 		if (time1[T1] > 25) {
 			autoDrivePIDCalculate(distance, time);
@@ -1270,58 +1272,84 @@ void autoDriveGyroPIDControl (int setAngle, int distance) {
 	}
 }
 
-void moveArmOutInAuto() {
-	while (time1(T2) < 1000) {
-		moveArmFlag();
-	}
-}
-
 void collectFirstBall() {
-	while (time1(T2) < 6000) {
+	while (time1(T2) < 3952) {
 		moveArmFlag();
 
-		if (time1(T2) < 1050) {
-			autoGyroPIDControl(-160);
+		if (time1(T2) < 1450) {
+			autoGyroPIDControl(-70);
 		}
 
-		if (time1(T2) > 1050 && time1(T2) < 3550) {
-			autoDriveGyroPIDControl(-80, -1200);
+		if (time1(T2) > 1450 && time1(T2) < 3950) {
+			autoDrivePIDControl(-1000, true);
 			motor[roller] = -120;
 		}
 	}
 }
 
 void allignWithFlags() {
-	while (time1(T2) < 6000) {
+	while (time1(T2) < 3482) {
 		moveArmFlag();
+		motor[roller] = -127;
 
-		if (time1(T2) < 1550) {
+		if (time1(T2) < 600) {
 			autoGyroPIDControl(50);
 		}
 
-		if (time1(T2) > 1550 && time1(T2) < 3550) {
-			autoDriveGyroPIDControl(-30, 1300);
+		if (time1(T2) > 600 && time1(T2) < 2600) {
+			autoDrivePIDControl(950, true);
+			datalogAddValueWithTimeStamp(7, (SensorValue[leftDriveEnc]+SensorValue[rightDriveEnc])/2);
 		}
 
-		if (time1[T2] > 3550 && time1[T2] < 5999) {
-			autoGyroPIDControl(900);
+		if (time1[T2] > 2600 && time1[T2] < 3450) {
+			motor[roller] = 0;
+			autoGyroPIDControl(840);
+		} else if (time1[T2] > 3450 && time1[T2] < 3480) {
+			motor[driveBL] = 0;
+			motor[driveBR] = 0;
+			motor[driveFL] = 0;
+			motor[driveFR] = 0;
 		}
 	}
 }
 
-void scoreFlags() {
-	while (time1(T2) < 6000) {
+void scoreHighFlag() {
+	while (time1(T2) < 2904) {
 		moveArmFlag();
+		motor[roller] = 0;
 
-		if (time1(T2) < 1550) {
-			autoDriveGyroPIDControl(900, 100);
+		if (time1(T2) < 2903) {
+			autoDrivePIDControl(360, true);
 		}
 
-		if (time1(T2) > 1550 && time1(T2) < 3550) {
+		if (time1(T2) > 850 && time1(T2) < 2850) {
 			motor[shooter] = -127;
 		}
 
-		if (time1(T2) > 3550 && time1(T2) < 5550) {
+		if (time1(T2) > 2850 && time1(T2) < 2900) {
+			motor[shooter] = 0;
+		}
+	}
+}
+
+void scoreBottomTwoFlags() {
+	while (time1(T2) < 4010) {
+		moveArmFlag();
+
+		if (time1(T2) < 550) {
+			autoGyroPIDControl(880);
+		}
+
+		if (time1(T2) > 550 && time1(T2) < 2400) {
+			autoDrivePIDControl(600, true);
+			motor[roller] = -127
+		}
+
+		if (time1(T2) > 2100 && time1(T2) < 4000) {
+			motor[shooter] = -127;
+		}
+
+		if (time1(T2) > 4000 && time1(T2) < 4002) {
 			motor[shooter] = 0;
 		}
 	}
