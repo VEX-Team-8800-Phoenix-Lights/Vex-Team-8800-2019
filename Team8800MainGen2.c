@@ -1273,6 +1273,7 @@ void autoDriveGyroPIDControl (int setAngle, int distance) {
 }
 
 void collectFirstBall() {
+	if (allianceColor == BLUE_ALLIANCE){
 	while (time1(T2) < 3952) {
 		moveArmFlag();
 
@@ -1285,9 +1286,24 @@ void collectFirstBall() {
 			motor[roller] = -120;
 		}
 	}
+} else if (allianceColor == RED_ALLIANCE){
+	while (time1(T2) < 3952) {
+		moveArmFlag();
+
+		if (time1(T2) < 1450) {
+			autoGyroPIDControl(60);
+		}
+
+		if (time1(T2) > 1450 && time1(T2) < 3950) {
+			autoDrivePIDControl(-1000, true);
+			motor[roller] = -120;
+		}
+	}
+}
 }
 
 void allignWithFlags() {
+	if (allianceColor == BLUE_ALLIANCE){
 	while (time1(T2) < 3482) {
 		moveArmFlag();
 		motor[roller] = -127;
@@ -1311,9 +1327,35 @@ void allignWithFlags() {
 			motor[driveFR] = 0;
 		}
 	}
+} else if (allianceColor == RED_ALLIANCE){
+	while (time1(T2) < 2982) {
+		moveArmFlag();
+		motor[roller] = -127;
+
+		if (time1(T2) < 600) {
+			autoGyroPIDControl(-50);
+		}
+
+		if (time1(T2) > 600 && time1(T2) < 2000) {
+			autoDrivePIDControl(1080, true);
+			datalogAddValueWithTimeStamp(7, (SensorValue[leftDriveEnc]+SensorValue[rightDriveEnc])/2);
+		}
+
+		if (time1[T2] > 2000 && time1[T2] < 2950) {
+			motor[roller] = 0;
+			autoGyroPIDControl(-1030);
+		} else if (time1[T2] > 2950 && time1[T2] < 2980) {
+			motor[driveBL] = 0;
+			motor[driveBR] = 0;
+			motor[driveFL] = 0;
+			motor[driveFR] = 0;
+		}
+	}
+}
 }
 
 void scoreHighFlag() {
+	if (allianceColor == BLUE_ALLIANCE){
 	while (time1(T2) < 2904) {
 		moveArmFlag();
 		motor[roller] = 0;
@@ -1330,9 +1372,30 @@ void scoreHighFlag() {
 			motor[shooter] = 0;
 		}
 	}
+} else if (allianceColor == RED_ALLIANCE){
+	while (time1(T2) < 2714) {
+		moveArmFlag();
+		if (time1[T2] > 300) {
+			motor[roller] = 0;
+		}
+
+		if (time1[T2] > 1) {
+			autoDrivePIDControl(440, true);
+		}
+
+		if (time1(T2) > 1100 && time1(T2) < 2700) {
+			motor[shooter] = -127;
+		}
+
+		if (time1(T2) > 2700 && time1(T2) < 2710) {
+			motor[shooter] = 0;
+		}
+	}
+}
 }
 
 void scoreBottomTwoFlags() {
+	if (allianceColor == BLUE_ALLIANCE){
 	while (time1(T2) < 4010) {
 		moveArmFlag();
 
@@ -1342,7 +1405,7 @@ void scoreBottomTwoFlags() {
 
 		if (time1(T2) > 550 && time1(T2) < 2400) {
 			autoDrivePIDControl(600, true);
-			motor[roller] = -127
+			motor[roller] = -127;
 		}
 
 		if (time1(T2) > 2100 && time1(T2) < 4000) {
@@ -1353,4 +1416,38 @@ void scoreBottomTwoFlags() {
 			motor[shooter] = 0;
 		}
 	}
+} else if (allianceColor == RED_ALLIANCE){
+	while (time1(T2) < 4610) {
+		if (time1(T2) < 1500) {
+			moveArmFlag();
+		}
+		motor[roller] = -127;
+
+		if (time1(T2) < 650) {
+			autoGyroPIDControl(-880);
+		}
+
+		if (time1(T2) > 650 && time1(T2) < 1800) {
+			autoDrivePIDControl(650, true);
+		}
+
+		if (time1(T2) > 1800 && time1(T2) < 2600) {
+			moveArmOut();
+			autoDrivePIDControl(530, true);
+		}
+
+		if (time1(T2) > 2600) {
+			moveArmOut();
+			autoGyroPIDControl(-1215);
+		}
+
+		if (time1(T2) > 2900 && time1(T2) < 4600) {
+			motor[shooter] = -127;
+		}
+
+		if (time1(T2) > 4600 && time1(T2) < 4602) {
+			motor[shooter] = 0;
+		}
+	}
+}
 }
