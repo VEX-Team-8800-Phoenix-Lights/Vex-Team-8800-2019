@@ -1343,7 +1343,7 @@ void allignWithFlags() {
 
 		if (time1[T2] > 2000 && time1[T2] < 2950) {
 			motor[roller] = 0;
-			autoGyroPIDControl(-1030);
+			autoGyroPIDControl(-1060);
 		} else if (time1[T2] > 2950 && time1[T2] < 2980) {
 			motor[driveBL] = 0;
 			motor[driveBR] = 0;
@@ -1375,7 +1375,7 @@ void scoreHighFlag() {
 } else if (allianceColor == RED_ALLIANCE){
 	while (time1(T2) < 2714) {
 		moveArmFlag();
-		if (time1[T2] > 300) {
+		if (time1[T2] > 1000) {
 			motor[roller] = 0;
 		}
 
@@ -1417,14 +1417,14 @@ void scoreBottomTwoFlags() {
 		}
 	}
 } else if (allianceColor == RED_ALLIANCE){
-	while (time1(T2) < 4610) {
+	while (time1(T2) < 5010) {
 		if (time1(T2) < 1500) {
 			moveArmFlag();
 		}
 		motor[roller] = -127;
 
 		if (time1(T2) < 650) {
-			autoGyroPIDControl(-880);
+			autoGyroPIDControl(-900);
 		}
 
 		if (time1(T2) > 650 && time1(T2) < 1800) {
@@ -1433,19 +1433,29 @@ void scoreBottomTwoFlags() {
 
 		if (time1(T2) > 1800 && time1(T2) < 2600) {
 			moveArmOut();
-			autoDrivePIDControl(530, true);
+			autoDrivePIDControl(460, true);
 		}
 
-		if (time1(T2) > 2600) {
+		if (time1(T2) > 2600 && time1[T2] < 3200) {
 			moveArmOut();
-			autoGyroPIDControl(-1215);
+			autoGyroPIDControl(-1255);
 		}
 
-		if (time1(T2) > 2900 && time1(T2) < 4600) {
+		if (time1(T2) > 3200 && time1[T2] < 3210) {
+			moveArmOut();
+			clearDriveEnc();
+		}
+
+		if (time1(T2) > 3210) {
+			moveArmOut();
+			autoDrivePIDControl(100, true);
+		}
+
+		if (time1(T2) > 3100 && time1(T2) < 5000) {
 			motor[shooter] = -127;
 		}
 
-		if (time1(T2) > 4600 && time1(T2) < 4602) {
+		if (time1(T2) > 5000 && time1(T2) < 5002) {
 			motor[shooter] = 0;
 		}
 	}
