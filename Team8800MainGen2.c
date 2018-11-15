@@ -111,6 +111,7 @@ void allignWithFlags();
 void collectFirstBall();
 void scoreHighFlag();
 void scoreBottomTwoFlags();
+void skillsStuff();
 
 // Constants and global vars
 const byte MIN_JOYSTICK_THRESHOLD = 30;
@@ -264,7 +265,8 @@ task autonomousRoutines()
 		break;
 
 	case AUTONOMOUS_MODE_1FLAG_PARK:
-		/////////////////////////////////////////////////////////////////////////////Mobile Goal 10///////////////////////////////////////////
+		/////////////////////////////////////////////////////////////////////////////Skills///////////////////////////////////////////
+
 
 		if (allianceColor == BLUE_ALLIANCE) {
 			theaterChaseTask(0, 0, 127, 50, 15000);
@@ -274,13 +276,32 @@ task autonomousRoutines()
 
 		clearTimer(T2);
 		clearDriveEnc();
-while (time1[T2] < 14000) {
-		autoGyroPIDControl(900);
-	}
+
+		collectFirstBall();
+
 		clearTimer(T2);
 		clearDriveEnc();
 
-		//////////////////////////////////////////////////////End of Mobile Goal 10/////////////////////////////////
+		allignWithFlags();
+
+		clearTimer(T2);
+		clearDriveEnc();
+		wait1Msec(100);
+
+		scoreHighFlag();
+
+		clearTimer(T2);
+		clearDriveEnc();
+		wait1Msec(100);
+
+		scoreBottomTwoFlags();
+
+		clearTimer(T2);
+		clearDriveEnc();
+
+		skillsStuff();
+
+		//////////////////////////////////////////////////////End of Skills/////////////////////////////////
 		break;
 
 	case AUTONOMOUS_MODE_BACK_1FLAG:
@@ -1313,13 +1334,13 @@ void allignWithFlags() {
 		}
 
 		if (time1(T2) > 600 && time1(T2) < 2600) {
-			autoDrivePIDControl(950, true);
+			autoDrivePIDControl(960, true);
 			datalogAddValueWithTimeStamp(7, (SensorValue[leftDriveEnc]+SensorValue[rightDriveEnc])/2);
 		}
 
 		if (time1[T2] > 2600 && time1[T2] < 3450) {
 			motor[roller] = 0;
-			autoGyroPIDControl(840);
+			autoGyroPIDControl(830);
 		} else if (time1[T2] > 3450 && time1[T2] < 3480) {
 			motor[driveBL] = 0;
 			motor[driveBR] = 0;
@@ -1396,23 +1417,27 @@ void scoreHighFlag() {
 
 void scoreBottomTwoFlags() {
 	if (allianceColor == BLUE_ALLIANCE){
-	while (time1(T2) < 4010) {
+	while (time1(T2) < 5010) {
 		moveArmFlag();
 
 		if (time1(T2) < 550) {
-			autoGyroPIDControl(880);
+			autoGyroPIDControl(930);
 		}
 
 		if (time1(T2) > 550 && time1(T2) < 2400) {
-			autoDrivePIDControl(600, true);
+			autoDrivePIDControl(630, true);
 			motor[roller] = -127;
 		}
 
-		if (time1(T2) > 2100 && time1(T2) < 4000) {
+		if (time1(T2) > 2400 && time1(T2) < 3400) {
+			autoGyroPIDControl(860);
+		}
+
+		if (time1(T2) > 3100 && time1(T2) < 5000) {
 			motor[shooter] = -127;
 		}
 
-		if (time1(T2) > 4000 && time1(T2) < 4002) {
+		if (time1(T2) > 5000 && time1(T2) < 5002) {
 			motor[shooter] = 0;
 		}
 	}
@@ -1461,3 +1486,53 @@ void scoreBottomTwoFlags() {
 	}
 }
 }
+
+void skillsStuff() {
+	if (allianceColor == BLUE_ALLIANCE) {
+		while (time1[T2] < 10000) {
+			if (time1[T2] < 1000) {
+				autoGyroPIDControl(900);
+			}
+
+			if (time1[T2] > 1000 && time1[T2] < 4000) {
+				autoDrivePIDControl(-1700, true);
+			}
+
+			if (time1[T2] > 4000 && time1[T2] < 6000) {
+				autoGyroPIDControl(0);
+			}
+
+			if (time1[T2] > 6000 && time1[T2] < 6050) {
+				clearDriveEnc();
+			}
+
+			if (time1[T2] > 6050) {
+				autoDrivePIDControl(-900, true);
+			}
+
+		}
+	} else if (allianceColor == RED_ALLIANCE) {
+			while (time1[T2] < 10000) {
+			if (time1[T2] < 1000) {
+				autoGyroPIDControl(-900);
+			}
+
+			if (time1[T2] > 1000 && time1[T2] < 4000) {
+				autoDrivePIDControl(-1500, true);
+			}
+
+			if (time1[T2] > 4000 && time1[T2] < 6000) {
+				autoGyroPIDControl(0);
+			}
+
+			if (time1[T2] > 6000 && time1[T2] < 6050) {
+				clearDriveEnc();
+			}
+
+			if (time1[T2] > 6050) {
+				autoDrivePIDControl(-900, true);
+			}
+
+			}
+		}
+	}
